@@ -135,10 +135,12 @@
 - **Idempotency /ˌaɪdəmˈpoʊtənsi/（幂等性）**：同一份配置反复执行 `apply`，结果保持一致，不会重复创建或产生副作用。
 - **Variable / Output（变量 / 输出）**：variable 是可配置的输入参数，output 是 apply 后暴露出来供人或其他模块读取的值。
 - **Replace / Force Replacement（替换/强制重建）**：当某个属性变化无法用 Update 操作完成时，Terraform 会先 destroy 旧资源再 create 新资源；plan 输出里会用 `-/+` 符号和 "forces replacement" 提示标记，apply 结果统计上表现为 "X added, X destroyed"（不计入 changed）。
+- **Backend /ˈbækˌend/（后端存储）**：state 文件存放的位置，可以是本地磁盘，也可以是远程存储（如 S3、COS），团队协作场景必须用远程 backend。backend block 里不能用 variable（必须写死字符串），因为 backend 初始化发生在 variable 解析之前。
+- **State locking（状态锁）**：防止多人同时 apply 导致 state 文件损坏的锁机制。用 DynamoDB 实现时，原理是往一张表里写一条 `LockID` 记录，apply 完成后自动删除；Terraform 1.10+ 也支持不依赖 DynamoDB 的 S3 原生锁（`use_lockfile = true`）。
+- **Bootstrap /ˈbuːtstræp/（自举/引导）模式**：backend 本身需要的资源（S3 bucket、DynamoDB table）不能用它们自己管理的 state 来创建（循环依赖/chicken-and-egg problem），所以要用一个单独的、本地 state 的 root module 先创建好这些资源。
+- **`force_destroy`**：S3 bucket 默认不允许删除非空 bucket（尤其开了 versioning 后，历史版本也算"非空"），要在 destroy 前把这个属性设为 `true` 并重新 apply，才能让 Terraform 自动清空 bucket 再删除。
 
-即将用到的术语（Phase 1-2 预告）：
-- **Backend /ˈbækˌend/（后端存储）**：state 文件存放的位置，可以是本地磁盘，也可以是远程存储（如 S3、COS），团队协作场景必须用远程 backend。
-- **State locking（状态锁）**：防止多人同时 apply 导致 state 文件损坏的锁机制，常搭配 DynamoDB 使用。
+即将用到的术语（Phase 2 预告）：
 - **VPC (Virtual Private Cloud，虚拟私有云)**：云上一个逻辑隔离的网络环境，你可以在里面自定义 IP 地址段、子网、路由规则。
 - **Subnet /ˈsʌbˌnet/（子网）**：VPC 内划分出的更小网段，通常分为 public subnet（可直接访问公网）和 private subnet（不能直接被公网访问）。
 - **CIDR /ˈsaɪdər/（无类别域间路由）**：一种表示 IP 地址段范围的写法，例如 `10.0.0.0/16`。
@@ -146,4 +148,5 @@
 
 ## 当前进度 (Current Progress)
 
-- **2026-07-06**：Phase 0 基本完成。Terraform CLI 已安装（v1.14.8）。完成了 `local_file` 资源的 init/plan/apply/destroy 练习、variable/output 改造、`-var` 覆盖 default 练习，并理解了 replace（强制重建）vs update（原地更新）的区别。下一步：Phase 1（远程 backend）。
+- **2026-07-06**：Phase 0 基本完成。Terraform CLI 已安装（v1.14.8）。完成了 `local_file` 资源的 init/plan/apply/destroy 练习、variable/output 改造、`-var` 覆盖 default 练习，并理解了 replace（强制重建）vs update（原地更新）的区别。
+- **2026-07-06**：Phase 1（远程 backend）完成。用 bootstrap/app 两个 root module 的模式创建了 S3 + DynamoDB backend，验证了 state 确实存到了 S3 上（本地不再有 tfstate 文件），并完整走了一遍销毁流程（含 `force_destroy` 处理 versioning 导致的非空 bucket 问题）。下一步：Phase 2（网络 VPC/Subnet/Security Group）。
