@@ -140,13 +140,15 @@
 - **Bootstrap /ˈbuːtstræp/（自举/引导）模式**：backend 本身需要的资源（S3 bucket、DynamoDB table）不能用它们自己管理的 state 来创建（循环依赖/chicken-and-egg problem），所以要用一个单独的、本地 state 的 root module 先创建好这些资源。
 - **`force_destroy`**：S3 bucket 默认不允许删除非空 bucket（尤其开了 versioning 后，历史版本也算"非空"），要在 destroy 前把这个属性设为 `true` 并重新 apply，才能让 Terraform 自动清空 bucket 再删除。
 
-即将用到的术语（Phase 2 预告）：
 - **VPC (Virtual Private Cloud，虚拟私有云)**：云上一个逻辑隔离的网络环境，你可以在里面自定义 IP 地址段、子网、路由规则。
-- **Subnet /ˈsʌbˌnet/（子网）**：VPC 内划分出的更小网段，通常分为 public subnet（可直接访问公网）和 private subnet（不能直接被公网访问）。
+- **Subnet /ˈsʌbˌnet/（子网）**：VPC 内划分出的更小网段，通常分为 public subnet（可直接访问公网）和 private subnet（不能直接被公网访问）。public subnet 需要同时具备"public IP"和"到 internet gateway 的 route"两个条件才能双向访问公网，二者缺一都会导致隔离。
 - **CIDR /ˈsaɪdər/（无类别域间路由）**：一种表示 IP 地址段范围的写法，例如 `10.0.0.0/16`。
-- **Security Group（安全组）**：绑定在实例上的虚拟防火墙规则，控制进出流量。
+- **Security Group（安全组）**：绑定在 instance 层面的 **stateful（有状态）** 虚拟防火墙，inbound 放行后 return traffic 自动放行，无需单独配 outbound。
+- **NACL /ˈnækəl/（Network ACL）**：绑定在 subnet 层面的 **stateless（无状态）** 防火墙，inbound/outbound 必须分别显式配置，支持 explicit deny。常见坑：忘记放行 outbound 的 ephemeral port range（1024-65535）会导致 response 发不出去。另一个坑：`aws_network_acl` 的 `protocol` 字段要用 IANA protocol number（如 `"6"` 代表 TCP），不是 `"tcp"` 这种友好名字（这是 `aws_network_acl_rule` 才支持的写法）。
+- **NAT Gateway /næt ˈɡeɪtweɪ/**：让 private subnet 里的资源能单向发起 outbound 连接（比如下载更新），但外部无法主动连入；按小时+流量计费，容易忘记删。
 
 ## 当前进度 (Current Progress)
 
 - **2026-07-06**：Phase 0 基本完成。Terraform CLI 已安装（v1.14.8）。完成了 `local_file` 资源的 init/plan/apply/destroy 练习、variable/output 改造、`-var` 覆盖 default 练习，并理解了 replace（强制重建）vs update（原地更新）的区别。
-- **2026-07-06**：Phase 1（远程 backend）完成。用 bootstrap/app 两个 root module 的模式创建了 S3 + DynamoDB backend，验证了 state 确实存到了 S3 上（本地不再有 tfstate 文件），并完整走了一遍销毁流程（含 `force_destroy` 处理 versioning 导致的非空 bucket 问题）。下一步：Phase 2（网络 VPC/Subnet/Security Group）。
+- **2026-07-06**：Phase 1（远程 backend）完成。用 bootstrap/app 两个 root module 的模式创建了 S3 + DynamoDB backend，验证了 state 确实存到了 S3 上（本地不再有 tfstate 文件），并完整走了一遍销毁流程（含 `force_destroy` 处理 versioning 导致的非空 bucket 问题）。
+- **2026-07-07**：Phase 2（网络）完成，含两个扩展实验。搭建了含 public/private subnet 的最小 VPC 拓扑（VPC + IGW + 2 subnet + route table + security group），验证了 private subnet 因为缺少 public IP + IGW route 而双向隔离；做了 NACL 对比练习（stateful vs stateless，踩了 protocol number 的坑）；短时验证了 NAT Gateway（EIP + NAT GW + private route table 指向 NAT），确认 route 生效后立刻 destroy，12 个资源全部清理干净且验证无残留（含最容易漏删的 Elastic IP）。下一步：Phase 3（计算 EC2）；腾讯云 VPC 对照练习待定。
