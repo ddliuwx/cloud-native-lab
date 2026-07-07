@@ -146,9 +146,15 @@
 - **Security Group（安全组）**：绑定在 instance 层面的 **stateful（有状态）** 虚拟防火墙，inbound 放行后 return traffic 自动放行，无需单独配 outbound。
 - **NACL /ˈnækəl/（Network ACL）**：绑定在 subnet 层面的 **stateless（无状态）** 防火墙，inbound/outbound 必须分别显式配置，支持 explicit deny。常见坑：忘记放行 outbound 的 ephemeral port range（1024-65535）会导致 response 发不出去。另一个坑：`aws_network_acl` 的 `protocol` 字段要用 IANA protocol number（如 `"6"` 代表 TCP），不是 `"tcp"` 这种友好名字（这是 `aws_network_acl_rule` 才支持的写法）。
 - **NAT Gateway /næt ˈɡeɪtweɪ/**：让 private subnet 里的资源能单向发起 outbound 连接（比如下载更新），但外部无法主动连入；按小时+流量计费，容易忘记删。
+- **AMI /eɪ em aɪ/（Amazon Machine Image）**：EC2 instance 的 OS 模板，建议用 `data "aws_ami"` 动态查询最新版本，而不是写死 AMI ID（AMI ID 因 region 而异、且会过期）。
+- **`user_data` / cloud-init /klaʊd ɪˈnɪt/**：EC2 第一次启动时自动执行的 bootstrap script，由预装的 cloud-init 工具读取并当 shell script 执行（脚本开头需要 `#!/bin/bash`）。**只在首次启动时跑一次**，reboot/stop-start 不会重新执行。
+- **Key pair（密钥对）**：SSH 登录用的一对密钥，public key 上传给 AWS（`aws_key_pair`），private key 留在本地。`aws_instance` 的 `key_name` 属性是 **ForceNew**——运行中的实例改 key 会触发 replace（先 destroy 再 create，public IP 也会跟着变）。
+- **`metadata_options`（IMDSv2 hardening）**：给 `aws_instance` 加 `http_tokens = "required"` 可以强制要求 token-based 的 **IMDSv2**，屏蔽掉不安全的 IMDSv1（历史上 Capital One 数据泄露就是 IMDSv1 被 SSRF 攻击利用导致的）。这个属性支持**原地更新**（1 to change，不是 replace）——同样是改 EC2 属性，是 update 还是 replace 取决于 AWS API 本身支不支持"运行中修改"，不是 Terraform 自己规定的。
+- **Stop vs Terminate**：stop 只是关机，根 EBS volume 数据保留、不再为 compute 计费；terminate 才会连磁盘一起删除。**Stop/start 之后，动态 public IP 会变**（除非用 Elastic IP 固定），但磁盘数据（包括 `user_data` 装好的软件）会完整保留。Power state 是运行时操作，不属于 Terraform 管理的目标配置范畴，需要用 AWS CLI 单独操作。
 
 ## 当前进度 (Current Progress)
 
 - **2026-07-06**：Phase 0 基本完成。Terraform CLI 已安装（v1.14.8）。完成了 `local_file` 资源的 init/plan/apply/destroy 练习、variable/output 改造、`-var` 覆盖 default 练习，并理解了 replace（强制重建）vs update（原地更新）的区别。
 - **2026-07-06**：Phase 1（远程 backend）完成。用 bootstrap/app 两个 root module 的模式创建了 S3 + DynamoDB backend，验证了 state 确实存到了 S3 上（本地不再有 tfstate 文件），并完整走了一遍销毁流程（含 `force_destroy` 处理 versioning 导致的非空 bucket 问题）。
-- **2026-07-07**：Phase 2（网络）完成，含两个扩展实验。搭建了含 public/private subnet 的最小 VPC 拓扑（VPC + IGW + 2 subnet + route table + security group），验证了 private subnet 因为缺少 public IP + IGW route 而双向隔离；做了 NACL 对比练习（stateful vs stateless，踩了 protocol number 的坑）；短时验证了 NAT Gateway（EIP + NAT GW + private route table 指向 NAT），确认 route 生效后立刻 destroy，12 个资源全部清理干净且验证无残留（含最容易漏删的 Elastic IP）。下一步：Phase 3（计算 EC2）；腾讯云 VPC 对照练习待定。
+- **2026-07-07**：Phase 2（网络）完成，含两个扩展实验。搭建了含 public/private subnet 的最小 VPC 拓扑（VPC + IGW + 2 subnet + route table + security group），验证了 private subnet 因为缺少 public IP + IGW route 而双向隔离；做了 NACL 对比练习（stateful vs stateless，踩了 protocol number 的坑）；短时验证了 NAT Gateway（EIP + NAT GW + private route table 指向 NAT），确认 route 生效后立刻 destroy，12 个资源全部清理干净且验证无残留（含最容易漏删的 Elastic IP）。
+- **2026-07-07**：Phase 3（计算 EC2）完成，含两个扩展实验。用 default VPC + data source 动态查 AMI + `user_data` 起了一台 EC2，装 nginx 并通过 curl 验证；加了 key pair 做 SSH 验证（体验了一次 `key_name` 触发的 ForceNew replace）；做了 IMDSv2 hardening（体验了属性可以原地更新 vs 强制重建的对比）；用 AWS CLI 做了 stop/start，验证了动态 public IP 会变、但磁盘数据持久化。全部资源 + 本地 SSH key 已清理干净。下一步：Phase 4（IAM 与安全）；腾讯云 VPC/CVM 对照练习待定。
