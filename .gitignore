@@ -12,3 +12,6 @@ override.tf.json
 *.tfvars.json
 .terraformrc
 terraform.rc
+
+# Lambda deployment packages built by the archive_file data source (regenerable from source)
+*.zip

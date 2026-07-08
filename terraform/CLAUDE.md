@@ -162,6 +162,12 @@
 - **`manage_master_user_password`**：让 AWS 自动生成 RDS 密码并存入 **Secrets Manager**，全程不经手明文，用 `aws secretsmanager get-secret-value` 取用。这类自动生成的 secret 命名固定带 `!`（如 `rds!db-xxx`），在 zsh 里会触发 **history expansion**，要用单引号包住，或者干脆换个不含 `!` 的查询条件绕开。
 - **`backup_retention_period` 默认值是 `0`**：默认关闭自动备份，必须显式设置（如 `= 7`）才有灾难恢复能力——这是个容易被忽略的不安全默认值。
 - **`apply_immediately`**：和"update vs replace"是两个不同维度的问题——它决定的是修改**什么时候**生效（立刻 vs 排到下一个 maintenance window），不是**怎么**生效。可以用 `aws rds describe-db-instances` 的 `PendingModifiedValues` 字段看到"已接受但未生效"的排队中修改。
+- **Lambda /ˈlæmdə/**：serverless 计算服务，按调用次数 + 运行时长计费，有永久性 always-free 额度（每月 100 万次调用）。**Cold start（冷启动）**：长时间未调用后第一次请求会多花时间初始化运行环境。
+- **`archive_file`（archive provider）**：把本地代码文件打包成 zip 供 Lambda 部署用，`source_file`（单文件）和 `source_dir`（整个目录）不能混用，混用会报 "could not archive directory that is a file" 之类的错。
+- **Resource-based policy vs Identity-based policy**：Phase 4 学的 IAM policy 挂在 role/user 身上是 identity-based（"这个身份能做什么"）；`aws_lambda_permission`、S3 bucket policy 这类直接挂在资源自己身上的，是 resource-based（"谁能访问/调用我"），回答的问题方向相反。
+- **API Gateway HTTP API vs REST API**：HTTP API（`aws_apigatewayv2_*`）更新、更便宜、配置更简单，新项目首选；REST API（`aws_api_gateway_*`）功能更全但配置更复杂，多见于遗留项目。
+- **`depends_on`（显式依赖）**：当两个 resource 之间存在"AWS API 层面要求的顺序"，但彼此配置里没有互相引用对方属性时，Terraform 没法自动推断依赖关系，必须手动声明。典型场景：`aws_s3_bucket_notification` 必须等 `aws_lambda_permission` 先创建好，否则 AWS 会拒绝这个 notification 配置。
+- **S3 event notification（事件驱动）**：S3 对象上传等事件可以直接触发 Lambda，属于异步 (asynchronous) 触发，跟 API Gateway 那种同步 (synchronous) 的"请求-响应"模式是两种不同的 serverless 触发方式。
 
 ## 当前进度 (Current Progress)
 
@@ -170,4 +176,5 @@
 - **2026-07-07**：Phase 2（网络）完成，含两个扩展实验。搭建了含 public/private subnet 的最小 VPC 拓扑（VPC + IGW + 2 subnet + route table + security group），验证了 private subnet 因为缺少 public IP + IGW route 而双向隔离；做了 NACL 对比练习（stateful vs stateless，踩了 protocol number 的坑）；短时验证了 NAT Gateway（EIP + NAT GW + private route table 指向 NAT），确认 route 生效后立刻 destroy，12 个资源全部清理干净且验证无残留（含最容易漏删的 Elastic IP）。
 - **2026-07-07**：Phase 3（计算 EC2）完成，含两个扩展实验。用 default VPC + data source 动态查 AMI + `user_data` 起了一台 EC2，装 nginx 并通过 curl 验证；加了 key pair 做 SSH 验证（体验了一次 `key_name` 触发的 ForceNew replace）；做了 IMDSv2 hardening（体验了属性可以原地更新 vs 强制重建的对比）；用 AWS CLI 做了 stop/start，验证了动态 public IP 会变、但磁盘数据持久化。全部资源 + 本地 SSH key 已清理干净。
 - **2026-07-07**：Phase 4（IAM 与安全）完成。搭了一个 EC2→S3 只读的最小权限 role（instance profile 模式），用 `aws iam simulate-principal-policy` 验证了 least privilege 边界（允许的 allowed，没提到的 implicitDeny）；搭了 GitHub Actions OIDC role（trust policy 精确锁定到 `repo:ddliuwx/cloud-native-lab`，permission 故意先给到最小，等 Phase 9 真正需要时再加）；顺手做了一次 local name 重命名的重构练习，学会了用 `terraform state mv` 避免不必要的 destroy+create。全部 8 个 IAM 资源已清理并校验干净。KMS/aws-vault 探索和腾讯云 CAM 对照练习待定。
-- **2026-07-07**：Phase 5（存储与数据库）完成。Part A 建了带 versioning/encryption/lifecycle rule 的 S3 bucket；Part B 建了一个单 AZ `db.t3.micro` MySQL RDS，用 `manage_master_user_password` 让 AWS 托管密码、通过 Secrets Manager 取用并成功连接验证；额外探索了自动备份默认值陷阱（`backup_retention_period` 默认 0）和 `apply_immediately` 概念（改动排队 vs 立即生效）。全部资源+ RDS 自动生成的 secret 已清理并校验干净。腾讯云 COS/TencentDB 对照练习待定。下一步：Phase 6（无服务器 Lambda）。
+- **2026-07-07**：Phase 5（存储与数据库）完成。Part A 建了带 versioning/encryption/lifecycle rule 的 S3 bucket；Part B 建了一个单 AZ `db.t3.micro` MySQL RDS，用 `manage_master_user_password` 让 AWS 托管密码、通过 Secrets Manager 取用并成功连接验证；额外探索了自动备份默认值陷阱（`backup_retention_period` 默认 0）和 `apply_immediately` 概念（改动排队 vs 立即生效）。全部资源+ RDS 自动生成的 secret 已清理并校验干净。腾讯云 COS/TencentDB 对照练习待定。
+- **2026-07-08**：Phase 6（无服务器）完成，含一个扩展实验。Step 6.1 搭了一个 Lambda 函数（Python），用 `aws lambda invoke` 独立验证；Step 6.2 接上 API Gateway HTTP API，验证了同步的请求-响应式触发（curl 直接拿到 Lambda 返回值）；扩展实验做了 S3 event trigger，验证了异步事件驱动触发（上传文件自动触发 Lambda，CloudWatch Logs 里看到了完整的 cold start 过程）。踩了两个坑：`archive_file` 的 `source_dir`/`source_file` 混用报错、`aws_s3_bucket_notification` 需要显式 `depends_on` 等 `aws_lambda_permission` 先创建好。全部资源已清理并校验干净（含一次 `force_destroy` 处理非空 bucket 的重复坑）。腾讯云 SCF 对照练习待定。下一步：Phase 7（模块化）。
