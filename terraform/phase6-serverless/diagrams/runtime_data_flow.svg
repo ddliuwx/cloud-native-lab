@@ -1,0 +1,79 @@
+<svg width="680" height="300" viewBox="0 0 680 300" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Runtime traffic flow for the two Phase 6 trigger paths</title>
+<desc>Top row: a client calls API Gateway, which synchronously invokes the hello Lambda and returns its response. Bottom row: a file upload lands in an S3 bucket, which asynchronously triggers the process_upload Lambda, which writes to CloudWatch Logs with no response sent back.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+  .header { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #5F5E5A; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<text class="header" x="340" y="28" text-anchor="middle">Synchronous (request/response)</text>
+
+<g class="c-gray">
+<rect x="50" y="45" width="130" height="56"/>
+<text class="th" x="115" y="63" text-anchor="middle">Client</text>
+<text class="ts" x="115" y="81" text-anchor="middle">browser/curl</text>
+</g>
+
+<line x1="180" y1="73" x2="198" y2="73" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="200" y="45" width="130" height="56"/>
+<text class="th" x="265" y="63" text-anchor="middle">API Gateway</text>
+<text class="ts" x="265" y="81" text-anchor="middle">HTTP API</text>
+</g>
+
+<line x1="330" y1="73" x2="348" y2="73" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="350" y="45" width="130" height="56"/>
+<text class="th" x="415" y="63" text-anchor="middle">Lambda</text>
+<text class="ts" x="415" y="81" text-anchor="middle">hello</text>
+</g>
+
+<text class="header" x="340" y="172" text-anchor="middle">Asynchronous (event-driven)</text>
+
+<g class="c-gray">
+<rect x="50" y="190" width="130" height="56"/>
+<text class="th" x="115" y="208" text-anchor="middle">File upload</text>
+<text class="ts" x="115" y="226" text-anchor="middle">aws s3 cp</text>
+</g>
+
+<line x1="180" y1="218" x2="198" y2="218" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="200" y="190" width="130" height="56"/>
+<text class="th" x="265" y="208" text-anchor="middle">S3 bucket</text>
+<text class="ts" x="265" y="226" text-anchor="middle">uploads</text>
+</g>
+
+<line x1="330" y1="218" x2="348" y2="218" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="350" y="190" width="130" height="56"/>
+<text class="th" x="415" y="208" text-anchor="middle">Lambda</text>
+<text class="ts" x="415" y="226" text-anchor="middle">process_upload</text>
+</g>
+
+<line x1="480" y1="218" x2="498" y2="218" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="500" y="190" width="130" height="56"/>
+<text class="th" x="565" y="208" text-anchor="middle">CloudWatch</text>
+<text class="ts" x="565" y="226" text-anchor="middle">Logs</text>
+</g>
+</svg>

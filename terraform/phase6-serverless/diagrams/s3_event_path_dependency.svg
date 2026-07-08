@@ -1,0 +1,59 @@
+<svg width="680" height="460" viewBox="0 0 680 460" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Dependency graph for the S3-triggered Lambda path</title>
+<desc>The same shared IAM role feeds the process_upload Lambda function. An independent S3 bucket exists in parallel. The Lambda function and bucket both feed a Lambda permission resource. The bucket, the Lambda function, and the permission (via an explicit depends_on) all feed the S3 bucket notification resource.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-gray">
+<rect x="90" y="30" width="180" height="56"/>
+<text class="th" x="180" y="48" text-anchor="middle">IAM role</text>
+<text class="ts" x="180" y="66" text-anchor="middle">shared exec role</text>
+</g>
+
+<g class="c-coral">
+<rect x="460" y="30" width="170" height="56"/>
+<text class="th" x="545" y="48" text-anchor="middle">S3 bucket</text>
+<text class="ts" x="545" y="66" text-anchor="middle">uploads</text>
+</g>
+
+<line x1="180" y1="86" x2="190" y2="138" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="90" y="140" width="200" height="56"/>
+<text class="th" x="190" y="158" text-anchor="middle">Lambda</text>
+<text class="ts" x="190" y="176" text-anchor="middle">process_upload</text>
+</g>
+
+<path d="M190,196 L300,248" class="arr" marker-end="url(#arrow)"/>
+<path d="M545,86 L420,248" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="240" y="250" width="200" height="56"/>
+<text class="th" x="340" y="268" text-anchor="middle">Lambda permission</text>
+<text class="ts" x="340" y="286" text-anchor="middle">s3 invoke</text>
+</g>
+
+<path d="M190,196 L250,358" class="arr" marker-end="url(#arrow)"/>
+<path d="M545,86 L430,358" class="arr" marker-end="url(#arrow)"/>
+<path d="M340,306 L340,358" class="arr" stroke-dasharray="4 3" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="200" y="360" width="280" height="56"/>
+<text class="th" x="340" y="378" text-anchor="middle">S3 notification</text>
+<text class="ts" x="340" y="396" text-anchor="middle">ObjectCreated event</text>
+</g>
+</svg>

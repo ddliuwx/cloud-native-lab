@@ -1,0 +1,65 @@
+<svg width="680" height="430" viewBox="0 0 680 430" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Dependency graph for the Phase 2 networking resources</title>
+<desc>The VPC feeds the internet gateway, public subnet, and private subnet. The NAT gateway depends on the public subnet (and the internet gateway via depends_on, plus an Elastic IP). The private route table depends on both the NAT gateway and the private subnet. Security group and NACL resources also attach to the VPC but are omitted here for clarity.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-gray">
+<rect x="250" y="30" width="180" height="56"/>
+<text class="th" x="340" y="48" text-anchor="middle">VPC</text>
+<text class="ts" x="340" y="66" text-anchor="middle">10.0.0.0/16</text>
+</g>
+
+<path d="M340,86 L130,128" class="arr" marker-end="url(#arrow)"/>
+<path d="M340,86 L345,128" class="arr" marker-end="url(#arrow)"/>
+<path d="M340,86 L555,128" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="60" y="130" width="140" height="56"/>
+<text class="th" x="130" y="148" text-anchor="middle">IGW</text>
+<text class="ts" x="130" y="166" text-anchor="middle">gateway</text>
+</g>
+
+<g class="c-blue">
+<rect x="260" y="130" width="170" height="56"/>
+<text class="th" x="345" y="148" text-anchor="middle">Public subnet</text>
+<text class="ts" x="345" y="166" text-anchor="middle">10.0.1.0/24</text>
+</g>
+
+<g class="c-blue">
+<rect x="470" y="130" width="170" height="56"/>
+<text class="th" x="555" y="148" text-anchor="middle">Private subnet</text>
+<text class="ts" x="555" y="166" text-anchor="middle">10.0.2.0/24</text>
+</g>
+
+<path d="M345,186 L370,228" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="270" y="230" width="200" height="56"/>
+<text class="th" x="370" y="248" text-anchor="middle">NAT gateway</text>
+<text class="ts" x="370" y="266" text-anchor="middle">+ EIP, public subnet</text>
+</g>
+
+<path d="M370,286 L370,328" class="arr" marker-end="url(#arrow)"/>
+<path d="M555,186 L460,328" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="250" y="330" width="240" height="56"/>
+<text class="th" x="370" y="348" text-anchor="middle">Private route table</text>
+<text class="ts" x="370" y="366" text-anchor="middle">+ association</text>
+</g>
+</svg>

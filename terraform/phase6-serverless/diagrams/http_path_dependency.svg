@@ -1,0 +1,51 @@
+<svg width="680" height="340" viewBox="0 0 680 340" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Dependency graph for the HTTP-triggered Lambda path</title>
+<desc>A shared IAM role feeds the hello Lambda function. The Lambda function feeds the API Gateway integration. Both the Lambda function and the API Gateway feed the Lambda permission resource that grants API Gateway invoke rights.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-gray">
+<rect x="250" y="30" width="180" height="56"/>
+<text class="th" x="340" y="48" text-anchor="middle">IAM role</text>
+<text class="ts" x="340" y="66" text-anchor="middle">shared exec role</text>
+</g>
+
+<line x1="340" y1="86" x2="340" y2="128" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="250" y="130" width="180" height="56"/>
+<text class="th" x="340" y="148" text-anchor="middle">Lambda</text>
+<text class="ts" x="340" y="166" text-anchor="middle">hello</text>
+</g>
+
+<line x1="430" y1="158" x2="468" y2="158" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="470" y="130" width="170" height="56"/>
+<text class="th" x="555" y="148" text-anchor="middle">API Gateway</text>
+<text class="ts" x="555" y="166" text-anchor="middle">4 resources chained</text>
+</g>
+
+<path d="M340,186 L400,238" class="arr" marker-end="url(#arrow)"/>
+<path d="M555,186 L480,238" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="340" y="240" width="200" height="56"/>
+<text class="th" x="440" y="258" text-anchor="middle">Lambda permission</text>
+<text class="ts" x="440" y="276" text-anchor="middle">apigateway invoke</text>
+</g>
+</svg>
