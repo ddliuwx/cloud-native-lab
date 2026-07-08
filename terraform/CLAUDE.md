@@ -156,6 +156,12 @@
 - **Least privilege（最小权限原则）**：只给"刚好够用"的权限，没写明的 action 默认 **`implicitDeny`（隐式拒绝）**，不需要专门写 deny 规则。可以用 `aws iam simulate-principal-policy` 在不真的起资源的情况下验证 policy 设计对不对。
 - **OIDC federation /oʊaɪdiːsiː ˌfedəˈreɪʃn/（联合身份认证）**：让 GitHub Actions 这类外部系统凭一个短期 JWT token 换取 AWS 临时凭证，全程不需要在外部系统里存长期 Access Key。GitHub 侧对应 `aws_iam_openid_connect_provider` + trust policy 里用 `sub`/`aud` claim 做 condition 限制范围（比如精确限制到某个 repo）。
 - **`terraform state mv`**：只改 local name（不改实际云资源）时，必须同步执行这个命令告诉 state file"这是同一个资源改了名字"，否则 Terraform 会误判成"旧资源被删、新资源要建"，触发不必要的 destroy+create。`data` block 不受影响（本来就不持有真实资源）。
+- **Lifecycle rule（生命周期规则）**：给 S3 object 设置自动过期/转存规则。较新版本的 `aws_s3_bucket_lifecycle_configuration` 要求每个 `rule` 显式带 `filter`（哪怕是空 `filter {}`，表示适用于整个 bucket），否则会有 deprecation warning。
+- **Bucket policy vs IAM policy**：都是权限策略，但挂载位置不同——IAM policy 挂在 role/user 身上（"这个身份能干什么"），bucket policy 直接挂在 bucket 自己身上（"谁能访问这个 bucket"），两者同时存在时取交集。
+- **RDS 成本模型**：`db.t3.micro` 按小时计费，storage 按 GB-month 计费，**Multi-AZ 会让两者都翻倍**（学习阶段应保持单 AZ）；create/destroy 都要 5-15 分钟，是目前遇到过最慢的资源类型。`skip_final_snapshot = true` 能避免删除前多等一次最终快照、也避免留下一个继续计费的 snapshot。
+- **`manage_master_user_password`**：让 AWS 自动生成 RDS 密码并存入 **Secrets Manager**，全程不经手明文，用 `aws secretsmanager get-secret-value` 取用。这类自动生成的 secret 命名固定带 `!`（如 `rds!db-xxx`），在 zsh 里会触发 **history expansion**，要用单引号包住，或者干脆换个不含 `!` 的查询条件绕开。
+- **`backup_retention_period` 默认值是 `0`**：默认关闭自动备份，必须显式设置（如 `= 7`）才有灾难恢复能力——这是个容易被忽略的不安全默认值。
+- **`apply_immediately`**：和"update vs replace"是两个不同维度的问题——它决定的是修改**什么时候**生效（立刻 vs 排到下一个 maintenance window），不是**怎么**生效。可以用 `aws rds describe-db-instances` 的 `PendingModifiedValues` 字段看到"已接受但未生效"的排队中修改。
 
 ## 当前进度 (Current Progress)
 
@@ -163,4 +169,5 @@
 - **2026-07-06**：Phase 1（远程 backend）完成。用 bootstrap/app 两个 root module 的模式创建了 S3 + DynamoDB backend，验证了 state 确实存到了 S3 上（本地不再有 tfstate 文件），并完整走了一遍销毁流程（含 `force_destroy` 处理 versioning 导致的非空 bucket 问题）。
 - **2026-07-07**：Phase 2（网络）完成，含两个扩展实验。搭建了含 public/private subnet 的最小 VPC 拓扑（VPC + IGW + 2 subnet + route table + security group），验证了 private subnet 因为缺少 public IP + IGW route 而双向隔离；做了 NACL 对比练习（stateful vs stateless，踩了 protocol number 的坑）；短时验证了 NAT Gateway（EIP + NAT GW + private route table 指向 NAT），确认 route 生效后立刻 destroy，12 个资源全部清理干净且验证无残留（含最容易漏删的 Elastic IP）。
 - **2026-07-07**：Phase 3（计算 EC2）完成，含两个扩展实验。用 default VPC + data source 动态查 AMI + `user_data` 起了一台 EC2，装 nginx 并通过 curl 验证；加了 key pair 做 SSH 验证（体验了一次 `key_name` 触发的 ForceNew replace）；做了 IMDSv2 hardening（体验了属性可以原地更新 vs 强制重建的对比）；用 AWS CLI 做了 stop/start，验证了动态 public IP 会变、但磁盘数据持久化。全部资源 + 本地 SSH key 已清理干净。
-- **2026-07-07**：Phase 4（IAM 与安全）完成。搭了一个 EC2→S3 只读的最小权限 role（instance profile 模式），用 `aws iam simulate-principal-policy` 验证了 least privilege 边界（允许的 allowed，没提到的 implicitDeny）；搭了 GitHub Actions OIDC role（trust policy 精确锁定到 `repo:ddliuwx/cloud-native-lab`，permission 故意先给到最小，等 Phase 9 真正需要时再加）；顺手做了一次 local name 重命名的重构练习，学会了用 `terraform state mv` 避免不必要的 destroy+create。全部 8 个 IAM 资源已清理并校验干净。KMS/aws-vault 探索和腾讯云 CAM 对照练习待定。下一步：Phase 5（存储与数据库）。
+- **2026-07-07**：Phase 4（IAM 与安全）完成。搭了一个 EC2→S3 只读的最小权限 role（instance profile 模式），用 `aws iam simulate-principal-policy` 验证了 least privilege 边界（允许的 allowed，没提到的 implicitDeny）；搭了 GitHub Actions OIDC role（trust policy 精确锁定到 `repo:ddliuwx/cloud-native-lab`，permission 故意先给到最小，等 Phase 9 真正需要时再加）；顺手做了一次 local name 重命名的重构练习，学会了用 `terraform state mv` 避免不必要的 destroy+create。全部 8 个 IAM 资源已清理并校验干净。KMS/aws-vault 探索和腾讯云 CAM 对照练习待定。
+- **2026-07-07**：Phase 5（存储与数据库）完成。Part A 建了带 versioning/encryption/lifecycle rule 的 S3 bucket；Part B 建了一个单 AZ `db.t3.micro` MySQL RDS，用 `manage_master_user_password` 让 AWS 托管密码、通过 Secrets Manager 取用并成功连接验证；额外探索了自动备份默认值陷阱（`backup_retention_period` 默认 0）和 `apply_immediately` 概念（改动排队 vs 立即生效）。全部资源+ RDS 自动生成的 secret 已清理并校验干净。腾讯云 COS/TencentDB 对照练习待定。下一步：Phase 6（无服务器 Lambda）。
