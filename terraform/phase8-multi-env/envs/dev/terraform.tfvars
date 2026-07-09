@@ -1,0 +1,1 @@
+bucket_name = "ddliu2026-dirlayer-dev-bucket"

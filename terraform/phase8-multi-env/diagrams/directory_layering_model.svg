@@ -1,0 +1,53 @@
+<svg width="680" height="320" viewBox="0 0 680 320" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>How the directory layering model achieves physical isolation</title>
+<desc>Two independent root modules, envs/dev and envs/prod, each with their own state and optionally their own backend. Both happen to call the same modules/s3-bucket source, but that shared source is the only thing they have in common — their state is never shared.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-blue">
+<rect x="60" y="40" width="250" height="140" rx="20" stroke-width="0.5"/>
+<text class="th" x="80" y="70" text-anchor="start">envs/dev/</text>
+<text class="ts" x="80" y="88" text-anchor="start">independent root module</text>
+</g>
+
+<g class="c-coral">
+<rect x="90" y="110" width="190" height="46"/>
+<text class="th" x="185" y="128" text-anchor="middle">own state</text>
+<text class="ts" x="185" y="146" text-anchor="middle">+ own backend, optional</text>
+</g>
+
+<g class="c-blue">
+<rect x="370" y="40" width="250" height="140" rx="20" stroke-width="0.5"/>
+<text class="th" x="390" y="70" text-anchor="start">envs/prod/</text>
+<text class="ts" x="390" y="88" text-anchor="start">independent root module</text>
+</g>
+
+<g class="c-coral">
+<rect x="400" y="110" width="190" height="46"/>
+<text class="th" x="495" y="128" text-anchor="middle">own state</text>
+<text class="ts" x="495" y="146" text-anchor="middle">+ own backend, optional</text>
+</g>
+
+<path d="M185,180 L300,232" class="arr" marker-end="url(#arrow)"/>
+<path d="M495,180 L380,232" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="250" y="234" width="180" height="56"/>
+<text class="th" x="340" y="252" text-anchor="middle">modules/s3-bucket</text>
+<text class="ts" x="340" y="270" text-anchor="middle">shared source, not shared state</text>
+</g>
+</svg>
