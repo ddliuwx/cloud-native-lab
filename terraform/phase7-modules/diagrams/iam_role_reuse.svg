@@ -1,0 +1,46 @@
+<svg width="680" height="250" viewBox="0 0 680 250" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>One module, three different call sites</title>
+<desc>The same modules/iam-role definition is called three times with different trust policies and policy attachments, producing three unrelated IAM roles: an EC2 role with an instance profile, a GitHub OIDC federated role, and a Lambda execution role.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-blue">
+<rect x="250" y="30" width="180" height="56"/>
+<text class="th" x="340" y="48" text-anchor="middle">modules/iam-role</text>
+<text class="ts" x="340" y="66" text-anchor="middle">one definition</text>
+</g>
+
+<path d="M340,86 L136,138" class="arr" marker-end="url(#arrow)"/>
+<path d="M340,86 L340,138" class="arr" marker-end="url(#arrow)"/>
+<path d="M340,86 L546,138" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="43" y="140" width="185" height="56"/>
+<text class="th" x="136" y="158" text-anchor="middle">ec2_s3_readonly_role</text>
+<text class="ts" x="136" y="176" text-anchor="middle">EC2 trust + profile</text>
+</g>
+
+<g class="c-purple">
+<rect x="248" y="140" width="185" height="56"/>
+<text class="th" x="340" y="158" text-anchor="middle">github_actions_role</text>
+<text class="ts" x="340" y="176" text-anchor="middle">OIDC federated trust</text>
+</g>
+
+<g class="c-purple">
+<rect x="453" y="140" width="185" height="56"/>
+<text class="th" x="546" y="158" text-anchor="middle">lambda_role</text>
+<text class="ts" x="546" y="176" text-anchor="middle">Lambda service trust</text>
+</g>
+</svg>
