@@ -1,0 +1,76 @@
+<svg width="720" height="560" viewBox="0 0 720 560" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Phase 10 CI pipeline: tflint and checkov on every terraform/** change</title>
+<desc>Any change under terraform triggers the Terraform Lint and Security Scan workflow. It checks out the code, installs tflint via the official setup-tflint action and runs it recursively for code-quality findings, then installs a pinned version of checkov and runs it against the whole terraform directory using the .checkov.yaml baseline, which skips checks that conflict with intentional cost-control or demo-accessibility decisions. Both results are commented back on the pull request, and the job fails if either tool reported a failure.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-gray">
+<rect x="270" y="20" width="180" height="56"/>
+<text class="th" x="360" y="42" text-anchor="middle">PR touches terraform/**</text>
+<text class="ts" x="360" y="60" text-anchor="middle">any phase, any module</text>
+</g>
+
+<path d="M360,76 L360,98" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="270" y="100" width="180" height="56"/>
+<text class="th" x="360" y="122" text-anchor="middle">setup-tflint action</text>
+<text class="ts" x="360" y="140" text-anchor="middle">tflint --init (aws plugin)</text>
+</g>
+
+<path d="M360,156 L360,178" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="270" y="180" width="180" height="56"/>
+<text class="th" x="360" y="202" text-anchor="middle">tflint --recursive</text>
+<text class="ts" x="360" y="220" text-anchor="middle">code-quality findings</text>
+</g>
+
+<path d="M360,236 L360,258" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="240" y="260" width="240" height="56"/>
+<text class="th" x="360" y="282" text-anchor="middle">pip install checkov==3.3.8</text>
+<text class="ts" x="360" y="300" text-anchor="middle">pinned, matches local version</text>
+</g>
+
+<path d="M360,316 L360,338" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="220" y="340" width="280" height="66"/>
+<text class="th" x="360" y="362" text-anchor="middle">checkov -d . --config-file .checkov.yaml</text>
+<text class="ts" x="360" y="380" text-anchor="middle">security misconfiguration findings</text>
+<text class="ts" x="360" y="396" text-anchor="middle">baseline skips documented, accepted risks</text>
+</g>
+
+<path d="M360,406 L360,428" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="240" y="430" width="240" height="56"/>
+<text class="th" x="360" y="452" text-anchor="middle">Comment results on PR</text>
+<text class="ts" x="360" y="470" text-anchor="middle">tflint + checkov outcome</text>
+</g>
+
+<path d="M360,486 L360,508" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="240" y="510" width="240" height="40"/>
+<text class="th" x="360" y="534" text-anchor="middle">Fail job if either tool failed</text>
+</g>
+</svg>
