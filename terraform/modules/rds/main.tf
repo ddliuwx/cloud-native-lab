@@ -56,4 +56,5 @@ resource "aws_db_instance" "this" {
   skip_final_snapshot        = true
   deletion_protection        = false
   auto_minor_version_upgrade = true
+  copy_tags_to_snapshot      = true
 }

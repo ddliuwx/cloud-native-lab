@@ -44,7 +44,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install checkov
-        run: pip install checkov
+        run: pip install checkov==3.3.8
 
       - name: Run checkov
         id: checkov

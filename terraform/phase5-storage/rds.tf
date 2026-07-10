@@ -52,6 +52,7 @@ resource "aws_db_instance" "learning" {
   backup_retention_period    = 7
   apply_immediately          = true
   auto_minor_version_upgrade = true
+  copy_tags_to_snapshot      = true
 }
 
 data "aws_vpc" "default" {

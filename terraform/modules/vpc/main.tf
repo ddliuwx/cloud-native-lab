@@ -18,6 +18,16 @@ resource "aws_vpc" "this" {
   }
 }
 
+resource "aws_default_security_group" "this" {
+  vpc_id = aws_vpc.this.id
+
+  # Intentionally empty: locks down the auto-created default SG so nothing
+  # can attach to it and get an unreviewed set of rules.
+  tags = {
+    Name = "${var.project_name}-default-sg-locked-down"
+  }
+}
+
 resource "aws_internet_gateway" "this" {
   vpc_id = aws_vpc.this.id
 
