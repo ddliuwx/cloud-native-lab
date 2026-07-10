@@ -4,7 +4,7 @@ variable "function_name" {
 
 variable "source_file" {
   description = "the path of lambda code file"
-  type = string
+  type        = string
 }
 
 variable "handler" {
@@ -13,10 +13,10 @@ variable "handler" {
 
 variable "role_arn" {
   description = "from modules/iam-role output"
-  type = string
+  type        = string
 }
 
 variable "runtime" {
-  type = string
+  type    = string
   default = "python3.12"
 }

@@ -3,7 +3,7 @@ resource "aws_s3_bucket" "this" {
 }
 
 resource "aws_s3_bucket_versioning" "this" {
-  count = var.enable_versioning?1:0
+  count  = var.enable_versioning ? 1 : 0
   bucket = aws_s3_bucket.this.id
 
   versioning_configuration {
@@ -21,14 +21,14 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "this" {
-  count = var.lifecycle_days != null ? 1: 0
+  count  = var.lifecycle_days != null ? 1 : 0
   bucket = aws_s3_bucket.this.id
 
   rule {
-    id = "expire-old-versions"
+    id     = "expire-old-versions"
     status = "Enabled"
     filter {
-      
+
     }
     noncurrent_version_expiration {
       noncurrent_days = var.lifecycle_days

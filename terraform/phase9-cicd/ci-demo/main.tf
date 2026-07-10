@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    aws={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
@@ -12,7 +12,7 @@ provider "aws" {
 }
 
 module "ci_demo_bucket" {
-  source = "../../modules/s3-bucket"
-  bucket_name = "ddliu2026-phase9-ci-demo"
+  source            = "../../modules/s3-bucket"
+  bucket_name       = "ddliu2026-phase9-ci-demo"
   enable_versioning = false
 }

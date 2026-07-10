@@ -14,7 +14,7 @@ resource "aws_internet_gateway" "this" {
   tags = {
     Name = "${var.project_name}-igw"
   }
-  
+
 }
 
 resource "aws_subnet" "public" {
@@ -27,17 +27,17 @@ resource "aws_subnet" "public" {
   tags = {
     Name = "${var.project_name}-public"
   }
-  
+
 }
 
 resource "aws_subnet" "private" {
-  vpc_id = aws_vpc.this.id
-  cidr_block = var.private_subnet_cidr
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.private_subnet_cidr
   availability_zone = var.availability_zone
 
-    tags = {
-        Name = "${var.project_name}-private"
-    }
+  tags = {
+    Name = "${var.project_name}-private"
+  }
 }
 
 resource "aws_route_table" "public" {
@@ -56,12 +56,12 @@ resource "aws_route_table" "public" {
 resource "aws_route_table_association" "public" {
   subnet_id      = aws_subnet.public.id
   route_table_id = aws_route_table.public.id
-  
+
 }
 
 resource "aws_subnet" "public_b" {
-  vpc_id = aws_vpc.this.id
-  cidr_block = var.public_subnet_b_cidr
+  vpc_id            = aws_vpc.this.id
+  cidr_block        = var.public_subnet_b_cidr
   availability_zone = var.secondary_availability_zone
 
   tags = {
@@ -70,7 +70,7 @@ resource "aws_subnet" "public_b" {
 }
 
 resource "aws_route_table_association" "public_b" {
-  subnet_id = aws_subnet.public_b.id
+  subnet_id      = aws_subnet.public_b.id
   route_table_id = aws_route_table.public.id
 }
 

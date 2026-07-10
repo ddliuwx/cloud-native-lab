@@ -1,4 +1,4 @@
 variable "project_prefix" {
-  type = string
+  type    = string
   default = "ddliu2026"
 }

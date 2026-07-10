@@ -1,15 +1,15 @@
 variable "target_bucket_name" {
-  type = string
+  type    = string
   default = "ddliu2026-phase7-placeholder-bucket"
 }
 
 variable "github_repo" {
-  type = string
+  type    = string
   default = "ddliuwx/cloud-native-lab"
 }
 
 variable "project_prefix" {
-  type = string
+  type    = string
   default = "ddliu2026"
 }
 

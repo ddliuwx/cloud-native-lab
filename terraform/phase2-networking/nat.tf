@@ -1,7 +1,7 @@
 resource "aws_eip" "nat" {
   domain = "vpc"
   tags = {
-    Name="nat-eip"
+    Name = "nat-eip"
   }
 }
 
@@ -9,10 +9,10 @@ resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public.id
   tags = {
-    Name="ddliu-nat-gateway"
+    Name = "ddliu-nat-gateway"
   }
-  depends_on = [ aws_internet_gateway.main ]
-  
+  depends_on = [aws_internet_gateway.main]
+
 }
 
 resource "aws_route_table" "private" {
@@ -25,8 +25,8 @@ resource "aws_route_table" "private" {
 
   tags = {
     Name = "private-rt"
-  } 
-  
+  }
+
 }
 
 resource "aws_route_table_association" "private" {

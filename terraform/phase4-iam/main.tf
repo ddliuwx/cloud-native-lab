@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    aws ={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
@@ -29,10 +29,10 @@ resource "aws_iam_role" "ec2_s3_readonly" {
 
 data "aws_iam_policy_document" "s3_readonly" {
   statement {
-    actions   = ["s3:GetObject", "s3:ListBucket"]
+    actions = ["s3:GetObject", "s3:ListBucket"]
     resources = [
       "arn:aws:s3:::${var.s3_target_bucket_name}",
-      "arn:aws:s3:::${var.s3_target_bucket_name}/*"]
+    "arn:aws:s3:::${var.s3_target_bucket_name}/*"]
   }
 }
 
@@ -44,7 +44,7 @@ resource "aws_iam_policy" "s3_readonly" {
 }
 
 resource "aws_iam_role_policy_attachment" "ec2_s3_readonly" {
-  role = aws_iam_role.ec2_s3_readonly.name
+  role       = aws_iam_role.ec2_s3_readonly.name
   policy_arn = aws_iam_policy.s3_readonly.arn
 }
 

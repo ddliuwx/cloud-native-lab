@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    aws={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
@@ -18,7 +18,7 @@ resource "aws_iam_openid_connect_provider" "github" {
 }
 
 data "aws_iam_policy_document" "github_oidc_trust" {
-    statement {
+  statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
 
     principals {
@@ -62,14 +62,14 @@ data "aws_iam_policy_document" "ci_permissions" {
 }
 
 resource "aws_iam_policy" "ci_permissions" {
-  name = "ddliu-phase9-ci-permissions"
+  name   = "ddliu-phase9-ci-permissions"
   policy = data.aws_iam_policy_document.ci_permissions.json
 }
 
 module "github_actions_role" {
-  source = "../../modules/iam-role"
-  role_name = "ddliu-phase9-github-actions-role"
-  assume_role_policy = data.aws_iam_policy_document.github_oidc_trust.json
-  managed_policy_arns = [aws_iam_policy.ci_permissions.arn]
+  source                  = "../../modules/iam-role"
+  role_name               = "ddliu-phase9-github-actions-role"
+  assume_role_policy      = data.aws_iam_policy_document.github_oidc_trust.json
+  managed_policy_arns     = [aws_iam_policy.ci_permissions.arn]
   create_instance_profile = false
 }

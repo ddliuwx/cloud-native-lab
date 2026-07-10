@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    aws={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
@@ -32,14 +32,14 @@ data "aws_ami" "al2023" {
   }
 
   filter {
-    name = "virtualization-type"
+    name   = "virtualization-type"
     values = ["hvm"]
   }
 }
 
 resource "aws_security_group" "web" {
-  name        = "ddliu-phase3-web-sg"
-  vpc_id      = data.aws_vpc.default.id
+  name   = "ddliu-phase3-web-sg"
+  vpc_id = data.aws_vpc.default.id
 
   ingress {
     description = "Allow HTTP traffic from anywhere"
@@ -55,7 +55,7 @@ resource "aws_security_group" "web" {
     protocol    = "tcp"
     cidr_blocks = ["${var.my_ip}/32"]
   }
-  
+
   egress {
     description = "Allow all outbound traffic"
     from_port   = 0
@@ -64,34 +64,34 @@ resource "aws_security_group" "web" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-    tags = {
-      Name = "ddliu-phase3-web-sg"
-    }
+  tags = {
+    Name = "ddliu-phase3-web-sg"
+  }
 }
 
 resource "aws_instance" "web" {
-  ami           = data.aws_ami.al2023.id
-  instance_type = "t3.micro"
-  subnet_id     = tolist(data.aws_subnets.default.ids)[0]
+  ami                    = data.aws_ami.al2023.id
+  instance_type          = "t3.micro"
+  subnet_id              = tolist(data.aws_subnets.default.ids)[0]
   vpc_security_group_ids = [aws_security_group.web.id]
-  key_name = aws_key_pair.deployer.key_name
-  user_data = file("${path.module}/user_data.sh")
+  key_name               = aws_key_pair.deployer.key_name
+  user_data              = file("${path.module}/user_data.sh")
 
   metadata_options {
-    http_endpoint = "enabled"
-    http_tokens = "required"
+    http_endpoint               = "enabled"
+    http_tokens                 = "required"
     http_put_response_hop_limit = 1
   }
 
   tags = {
     Name = "ddliu-phase3-web-instance"
   }
-  
+
 }
 
 resource "aws_key_pair" "deployer" {
   key_name   = "ddliu-phase3-deployer"
-    public_key = file("~/.ssh/tf-learning.pub")
+  public_key = file("~/.ssh/tf-learning.pub")
 }
 
 

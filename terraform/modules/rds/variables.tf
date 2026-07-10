@@ -15,36 +15,36 @@ variable "my_ip" {
 }
 
 variable "db_port" {
-  type = number
+  type    = number
   default = 3306
 }
 
 variable "engine" {
-  type = string
+  type    = string
   default = "mysql"
 }
 
 variable "engine_version" {
-  type = string
+  type    = string
   default = "8.0"
 }
 
 variable "instance_class" {
-  type = string
+  type    = string
   default = "db.t3.micro"
 }
 
 variable "allocated_storage" {
-  type = number
+  type    = number
   default = 20
 }
 
 variable "username" {
-  type = string
+  type    = string
   default = "admin"
 }
 
 variable "publicly_accessible" {
-  type = bool
+  type    = bool
   default = true
 }
