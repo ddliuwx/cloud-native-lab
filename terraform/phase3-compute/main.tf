@@ -39,8 +39,9 @@ data "aws_ami" "al2023" {
 }
 
 resource "aws_security_group" "web" {
-  name   = "ddliu-phase3-web-sg"
-  vpc_id = data.aws_vpc.default.id
+  name        = "ddliu-phase3-web-sg"
+  description = "Security group for phase3 web instance"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "Allow HTTP traffic from anywhere"
@@ -70,6 +71,7 @@ resource "aws_security_group" "web" {
   }
 }
 
+
 resource "aws_instance" "web" {
   ami                    = data.aws_ami.al2023.id
   instance_type          = "t3.micro"
@@ -82,6 +84,10 @@ resource "aws_instance" "web" {
     http_endpoint               = "enabled"
     http_tokens                 = "required"
     http_put_response_hop_limit = 1
+  }
+
+  root_block_device {
+    encrypted = true
   }
 
   tags = {

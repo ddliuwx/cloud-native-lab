@@ -1,0 +1,73 @@
+name: Terraform Lint & Security Scan
+
+on:
+  pull_request:
+    paths:
+      - "terraform/**"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  lint-and-scan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup tflint
+        uses: terraform-linters/setup-tflint@v4
+        with:
+          tflint_version: latest
+
+      - name: Init tflint plugins
+        run: tflint --init
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tflint
+        id: tflint
+        run: tflint --recursive --format compact
+        continue-on-error: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install checkov
+        run: pip install checkov==3.3.8
+
+      - name: Run checkov
+        id: checkov
+        run: checkov -d . --compact --config-file .checkov.yaml
+        continue-on-error: true
+
+      - name: Comment results on PR
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request'
+        with:
+          script: |
+            const output = `#### tflint \`${{ steps.tflint.outcome }}\`
+            #### checkov (security scan) \`${{ steps.checkov.outcome }}\`
+
+            Full logs: see the "Terraform Lint & Security Scan" check run for this PR.`;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: output
+            });
+
+      - name: Fail if any check failed
+        if: steps.tflint.outcome == 'failure' || steps.checkov.outcome == 'failure'
+        run: exit 1

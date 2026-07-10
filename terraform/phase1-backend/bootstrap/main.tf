@@ -36,6 +36,28 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "tf_state" {
   }
 }
 
+resource "aws_s3_bucket_public_access_block" "tf_state" {
+  bucket = aws_s3_bucket.tf_state.id
+
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "tf_state" {
+  bucket = aws_s3_bucket.tf_state.id
+
+  rule {
+    id     = "abort-incomplete-multipart-upload"
+    status = "Enabled"
+    filter {}
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
+  }
+}
+
 resource "aws_dynamodb_table" "tf_lock" {
   name         = "tf-state-lock-${var.unique_suffix}"
   billing_mode = "PAY_PER_REQUEST"

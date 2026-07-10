@@ -22,6 +22,16 @@ resource "aws_vpc" "main" {
   }
 }
 
+resource "aws_default_security_group" "main" {
+  vpc_id = aws_vpc.main.id
+
+  # Intentionally empty: locks down the auto-created default SG so nothing
+  # can attach to it and get an unreviewed set of rules.
+  tags = {
+    Name = "ddliu-learning-default-sg-locked-down"
+  }
+}
+
 resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
