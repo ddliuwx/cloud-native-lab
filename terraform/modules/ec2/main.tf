@@ -55,6 +55,14 @@ resource "aws_instance" "this" {
   subnet_id              = var.subnet_id
   vpc_security_group_ids = [aws_security_group.this.id]
 
+  metadata_options {
+    http_tokens = "required"
+  }
+
+  root_block_device {
+    encrypted = true
+  }
+
   tags = {
     Name = "${var.project_name}-web"
   }

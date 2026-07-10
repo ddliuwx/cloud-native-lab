@@ -14,8 +14,9 @@ resource "aws_db_subnet_group" "this" {
 }
 
 resource "aws_security_group" "this" {
-  name   = "${var.identifier}-sg"
-  vpc_id = var.vpc_id
+  name        = "${var.identifier}-sg"
+  description = "Security group for RDS instance ${var.identifier}"
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "DB access from my IP only"
@@ -26,6 +27,7 @@ resource "aws_security_group" "this" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -41,6 +43,7 @@ resource "aws_db_instance" "this" {
 
   allocated_storage = var.allocated_storage
   storage_type      = "gp2"
+  storage_encrypted = true
 
   db_subnet_group_name   = aws_db_subnet_group.this.name
   vpc_security_group_ids = [aws_security_group.this.id]
@@ -48,8 +51,9 @@ resource "aws_db_instance" "this" {
   manage_master_user_password = true
   username                    = var.username
 
-  multi_az            = false
-  publicly_accessible = var.publicly_accessible
-  skip_final_snapshot = true
-  deletion_protection = false
+  multi_az                   = false
+  publicly_accessible        = var.publicly_accessible
+  skip_final_snapshot        = true
+  deletion_protection        = false
+  auto_minor_version_upgrade = true
 }

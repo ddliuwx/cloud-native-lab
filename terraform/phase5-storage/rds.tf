@@ -4,8 +4,9 @@ resource "aws_db_subnet_group" "default" {
 }
 
 resource "aws_security_group" "rds" {
-  name   = "phase5-rds-sg"
-  vpc_id = data.aws_vpc.default.id
+  name        = "phase5-rds-sg"
+  description = "Security group for phase5 learning RDS instance"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     description = "mysql from my ip only"
@@ -16,6 +17,7 @@ resource "aws_security_group" "rds" {
   }
 
   egress {
+    description = "Allow all outbound traffic"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
@@ -31,6 +33,7 @@ resource "aws_db_instance" "learning" {
 
   allocated_storage = 20
   storage_type      = "gp2"
+  storage_encrypted = true
 
   db_subnet_group_name   = aws_db_subnet_group.default.name
   vpc_security_group_ids = [aws_security_group.rds.id]
@@ -46,8 +49,9 @@ resource "aws_db_instance" "learning" {
   tags = {
     name = "phase5-learning-db"
   }
-  backup_retention_period = 7
-  apply_immediately       = true
+  backup_retention_period    = 7
+  apply_immediately          = true
+  auto_minor_version_upgrade = true
 }
 
 data "aws_vpc" "default" {
