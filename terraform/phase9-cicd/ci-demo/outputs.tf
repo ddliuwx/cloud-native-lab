@@ -1,3 +1,3 @@
-output "bucket_name" {
-  value = module.ci_demo_bucket.bucket_name
+output "bucket_id" {
+  value = module.ci_demo_bucket.bucket_id
 }
