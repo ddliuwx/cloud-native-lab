@@ -19,6 +19,7 @@
 4. **及时校验**：每个 Phase 结束前跑一遍 `terraform destroy`，确认没有遗留资源。
 5. **命名规范 (naming convention)**：local name 用 snake_case，且不重复 resource type（如 `aws_iam_role.ec2_s3_readonly` 而不是 `aws_iam_role.ec2_s3_readonly_role`）；同一 module 内只有一个某类型资源时可参考 HashiCorp 官方惯例命名为 `this`；AWS-facing 的 `name` 属性用 kebab-case，加项目前缀但不塞 metadata（metadata 放 tags）。重命名 local name 时记得同步 `terraform state mv`，否则会触发不必要的 destroy+create。
 6. **提交前格式化 (fmt before commit)**：每次 `git commit` 推到 GitHub 之前，先跑一遍 `terraform fmt -recursive`，确认没有格式改动（或格式改动已经加入本次 commit）再提交，避免 CI 里的 `terraform fmt -check` 报错、也保持代码风格统一。
+7. **全部改动走 PR (PR-only workflow)**：从 Phase 9 之后，所有改动都不再直接 push 到 `main`，一律走"新建 feature 分支 → push → 开 PR → 等 CI 检查 → merge"的完整流程；Claude 负责建分支、commit、push、开 PR（可用 `gh pr create`），**merge 这一步固定由学习者本人在 GitHub 网页上手动点击**，用来专门练习 PR 的 review/merge 环节。
 
 ## 成本控制原则 (Cost Control Principles)
 
