@@ -9,13 +9,13 @@ data "archive_file" "s3_lambda_zip" {
 }
 
 resource "aws_lambda_function" "process_upload" {
-  function_name = "${var.project_prefix}-phase6-process-upload-lambda"
-  role          = aws_iam_role.lambda_exec.arn
-  handler       = "lambda_s3_handler.handler"
-  runtime       = "python3.12"
-  filename      = data.archive_file.s3_lambda_zip.output_path
+  function_name    = "${var.project_prefix}-phase6-process-upload-lambda"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "lambda_s3_handler.handler"
+  runtime          = "python3.12"
+  filename         = data.archive_file.s3_lambda_zip.output_path
   source_code_hash = data.archive_file.s3_lambda_zip.output_base64sha256
-  
+
 }
 
 
@@ -25,7 +25,7 @@ resource "aws_lambda_permission" "s3_invoke" {
   function_name = aws_lambda_function.process_upload.function_name
   principal     = "s3.amazonaws.com"
   source_arn    = aws_s3_bucket.uploads.arn
-  
+
 }
 
 resource "aws_s3_bucket_notification" "uploads" {
@@ -36,5 +36,5 @@ resource "aws_s3_bucket_notification" "uploads" {
     events              = ["s3:ObjectCreated:*"]
   }
 
-  depends_on = [ aws_lambda_permission.s3_invoke ]
+  depends_on = [aws_lambda_permission.s3_invoke]
 }

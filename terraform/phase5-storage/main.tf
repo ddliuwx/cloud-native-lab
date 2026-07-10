@@ -1,8 +1,8 @@
 terraform {
   required_providers {
-    aws ={
-        source = "hashicorp/aws"
-        version = "~> 5.0"
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
     }
   }
 }
@@ -28,7 +28,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "app_data" {
     apply_server_side_encryption_by_default {
       sse_algorithm = "AES256"
     }
-  } 
+  }
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "app_data" {
