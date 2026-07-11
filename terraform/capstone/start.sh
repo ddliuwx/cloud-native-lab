@@ -2,9 +2,21 @@
 # Spins up the capstone three-tier architecture (VPC + NAT Gateway + RDS +
 # ECS Fargate + ALB) and verifies it end-to-end via curl.
 #
+# The remote state backend (S3 bucket + DynamoDB lock table) is expected to
+# either already exist, or get bootstrapped here if it doesn't - this repo's
+# convention has been to destroy that backend too when fully tearing down
+# (see destroy.sh), so a fresh start needs to recreate it first.
+#
 # Usage: ./start.sh
 set -euo pipefail
 cd "$(dirname "$0")"
+
+BUCKET="tf-state-ddliu2026-capstone"
+
+if ! aws s3api head-bucket --bucket "$BUCKET" 2>/dev/null; then
+  echo "==> Remote state backend not found, bootstrapping it first..."
+  (cd ../phase1-backend/bootstrap && terraform init -input=false && terraform apply -var="unique_suffix=ddliu2026-capstone")
+fi
 
 echo "==> terraform init"
 terraform init -input=false

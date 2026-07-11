@@ -14,27 +14,20 @@ for the full picture.
 
 - AWS CLI configured with credentials that can create the resources above
 - Terraform >= 1.5.0
-- The remote state backend already bootstrapped (one-time setup, see below)
 
-## One-time setup: remote state backend
+## Remote state backend
 
-This project's state lives in a dedicated S3 bucket + DynamoDB lock table,
-separate from other phases' backends. It only needs to be created once:
+This project's state lives in a dedicated S3 bucket + DynamoDB lock table
+(`tf-state-ddliu2026-capstone` / `tf-state-lock-ddliu2026-capstone`),
+bootstrapped from `../phase1-backend/bootstrap` with
+`-var="unique_suffix=ddliu2026-capstone"`.
 
-```bash
-cd ../phase1-backend/bootstrap
-terraform apply -var="unique_suffix=ddliu2026-capstone"
-```
-
-This creates:
-- S3 bucket: `tf-state-ddliu2026-capstone`
-- DynamoDB table: `tf-state-lock-ddliu2026-capstone`
-
-`capstone/main.tf` already points at this backend. If you ever need to
-recreate it under a different name, update the `backend "s3"` block in
-`main.tf` and re-run `terraform init` (Terraform will prompt to migrate
-existing state — say `yes` if there's anything worth keeping, `no` if
-starting fresh).
+**This backend does not persist between full teardown cycles by convention
+in this repo** — `destroy.sh` offers to tear it down along with everything
+else, and `start.sh` automatically re-bootstraps it if it's missing. You
+don't need to think about this directly; just run the scripts. (If you'd
+rather keep the backend around permanently to skip that ~10s bootstrap step
+on every fresh start, say `N` when `destroy.sh` asks.)
 
 ## Usage
 
@@ -44,10 +37,11 @@ starting fresh).
 ./start.sh
 ```
 
-This runs `terraform init` → `plan` → `apply`, waits for the ECS service to
-reach steady state, then curls the ALB until the app responds (up to 2
-minutes, since ALB health checks take a little while to pass after tasks
-first launch).
+Checks whether the remote state backend exists and bootstraps it first if
+not, then runs `terraform init` → `plan` → `apply`, waits for the ECS
+service to reach steady state, and curls the ALB until the app responds (up
+to 2 minutes, since ALB health checks take a little while to pass after
+tasks first launch).
 
 Takes roughly 5-8 minutes end to end — the NAT Gateway and RDS instance are
 the slow parts.
@@ -59,16 +53,21 @@ the slow parts.
 ```
 
 Runs `terraform plan -destroy` → `apply`, tearing down every resource this
-module created. Takes roughly 10-15 minutes (NAT Gateway, RDS, and ALB
-deletion each take a few minutes).
+module created, then asks whether to also destroy the remote state backend.
+Takes roughly 10-15 minutes (NAT Gateway, RDS, and ALB deletion each take a
+few minutes; the ECS service and Internet Gateway have occasionally taken
+6-7 minutes each to tear down cleanly).
 
 **Cost reminder**: while running, this stack costs real money per hour (NAT
 Gateway, ALB, RDS, 2x Fargate tasks — roughly $0.15-0.20/hour combined).
 Don't leave it running longer than you need it for.
 
 Both scripts use `terraform plan -out=<file>` followed by `terraform apply
-<file>`, not `-auto-approve` — the plan is always printed and applied
-exactly as reviewed, never silently.
+<file>` for the capstone resources themselves, not `-auto-approve` — the
+plan is always printed and applied exactly as reviewed, never silently.
+(The backend bootstrap step inside each script does still prompt for its
+own `yes`/`y` confirmation, since it's a separate `terraform apply`/
+`destroy` in a different directory.)
 
 ## Manual verification (optional, beyond what start.sh checks)
 
