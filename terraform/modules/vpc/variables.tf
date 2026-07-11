@@ -33,3 +33,8 @@ variable "public_subnet_b_cidr" {
   type    = string
   default = "10.0.4.0/24"
 }
+
+variable "private_subnet_b_cidr" {
+  type    = string
+  default = "10.0.3.0/24"
+}

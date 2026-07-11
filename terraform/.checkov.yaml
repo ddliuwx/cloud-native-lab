@@ -58,3 +58,20 @@ skip-check:
   - CKV_AWS_336 # ECS container read-only root filesystem - the stock nginx:latest image needs writable paths (cache, temp, pid) and would break without extra volume/tmpfs config; out of scope for this demo
   - CKV_AWS_39  # EKS public endpoint enabled - needed for direct kubectl access from a laptop without a VPN/bastion; access is restricted to my own IP via public_access_cidrs (see CKV_AWS_38, which is fixed, not skipped)
   - CKV_AWS_333 # ECS service auto-assigns a public IP - deliberate, since this phase intentionally skips ALB to focus on ECS/Fargate concepts; the capstone project replaces this with a private subnet + ALB
+
+  # --- Capstone: no HTTPS, since this project has no purchased/registered domain name
+  # to issue an ACM certificate against. HTTP-only is the deliberate, documented tradeoff. ---
+  - CKV_AWS_2   # ALB listener protocol should be HTTPS
+  - CKV_AWS_103 # Load balancer should use at least TLS 1.2
+  - CKV_AWS_378 # Load balancer shouldn't use HTTP protocol
+  - CKV2_AWS_20 # ALB should redirect HTTP to HTTPS
+
+  # --- Capstone: cost control / overkill for a portfolio demo torn down after verification ---
+  - CKV_AWS_150 # ALB deletion protection - must stay off, so `terraform destroy` works cleanly
+  - CKV_AWS_91  # ALB access logging - needs a separate S3 log-target bucket, unnecessary cost/complexity for a demo
+  - CKV2_AWS_28 # Public ALB protected by WAF - WAF has a monthly base fee plus per-rule cost, way overkill for a demo
+
+  # --- Capstone: false positive from checkov's static analysis ---
+  - CKV_AWS_249 # execution role ARN and task role ARN must differ - they genuinely are two separate modules/roles
+                # (module.execution_role vs module.task_role), but both ARNs are "(known after apply)" at plan
+                # time, so checkov can't statically prove they differ and fails safe instead of passing
