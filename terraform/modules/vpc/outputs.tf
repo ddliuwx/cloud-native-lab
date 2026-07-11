@@ -14,3 +14,7 @@ output "public_subnet_b_id" {
   value = aws_subnet.public_b.id
 }
 
+output "private_subnet_b_id" {
+  value = aws_subnet.private_b.id
+}
+

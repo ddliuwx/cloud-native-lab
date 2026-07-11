@@ -11,7 +11,8 @@ variable "subnet_ids" {
 }
 
 variable "my_ip" {
-  type = string
+  type    = string
+  default = null
 }
 
 variable "db_port" {
@@ -47,4 +48,10 @@ variable "username" {
 variable "publicly_accessible" {
   type    = bool
   default = true
+}
+
+variable "allowed_security_group_ids" {
+  description = "security groups allowed to reach the DB instance, e.g. the security group of the EC2 instance"
+  type        = list(string)
+  default     = []
 }

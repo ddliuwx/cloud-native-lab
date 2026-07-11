@@ -18,12 +18,26 @@ resource "aws_security_group" "this" {
   description = "Security group for RDS instance ${var.identifier}"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description = "DB access from my IP only"
-    from_port   = var.db_port
-    to_port     = var.db_port
-    protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"]
+  dynamic "ingress" {
+    for_each = var.my_ip != null ? [var.my_ip] : []
+    content {
+      description = "DB access from my IP only"
+      from_port   = var.db_port
+      to_port     = var.db_port
+      protocol    = "tcp"
+      cidr_blocks = ["${ingress.value}/32"]
+    }
+  }
+
+  dynamic "ingress" {
+    for_each = var.allowed_security_group_ids
+    content {
+      description     = "DB access from allowed security groups"
+      from_port       = var.db_port
+      to_port         = var.db_port
+      protocol        = "tcp"
+      security_groups = [ingress.value]
+    }
   }
 
   egress {

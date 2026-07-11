@@ -71,6 +71,24 @@ module "github_actions_role" {
   source                  = "../../modules/iam-role"
   role_name               = "ddliu-phase9-github-actions-role"
   assume_role_policy      = data.aws_iam_policy_document.github_oidc_trust.json
-  managed_policy_arns     = [aws_iam_policy.ci_permissions.arn]
+  managed_policy_arns     = [aws_iam_policy.ci_permissions.arn, aws_iam_policy.capstone_state_lock.arn, "arn:aws:iam::aws:policy/ReadOnlyAccess", ]
   create_instance_profile = false
+}
+
+data "aws_caller_identity" "current" {}
+
+data "aws_iam_policy_document" "capstone_state_lock" {
+  statement {
+    actions = [
+      "dynamodb:GetItem",
+      "dynamodb:PutItem",
+      "dynamodb:DeleteItem",
+    ]
+    resources = ["arn:aws:dynamodb:ap-southeast-2:${data.aws_caller_identity.current.account_id}:table/tf-state-lock-ddliu2026-capstone"]
+  }
+}
+
+resource "aws_iam_policy" "capstone_state_lock" {
+  name   = "ddliu-capstone-state-lock-permissions"
+  policy = data.aws_iam_policy_document.capstone_state_lock.json
 }
