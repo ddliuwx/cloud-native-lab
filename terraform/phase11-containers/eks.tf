@@ -22,7 +22,8 @@ resource "aws_eks_cluster" "this" {
   role_arn = module.eks_cluster_role.role_arn
 
   vpc_config {
-    subnet_ids = [module.vpc.public_subnet_id, module.vpc.public_subnet_b_id]
+    subnet_ids          = [module.vpc.public_subnet_id, module.vpc.public_subnet_b_id]
+    public_access_cidrs = ["${var.my_ip}/32"]
   }
 
   access_config {
