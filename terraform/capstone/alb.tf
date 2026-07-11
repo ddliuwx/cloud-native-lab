@@ -21,11 +21,12 @@ resource "aws_security_group" "alb" {
 }
 
 resource "aws_lb" "this" {
-  name               = "${var.project_name}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.alb.id]
-  subnets            = [module.vpc.public_subnet_id, module.vpc.public_subnet_b_id]
+  name                       = "${var.project_name}-alb"
+  internal                   = false
+  load_balancer_type         = "application"
+  security_groups            = [aws_security_group.alb.id]
+  subnets                    = [module.vpc.public_subnet_id, module.vpc.public_subnet_b_id]
+  drop_invalid_header_fields = true
 
   tags = {
     Name = "${var.project_name}-alb"
