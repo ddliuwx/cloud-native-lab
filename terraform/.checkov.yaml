@@ -46,3 +46,15 @@ skip-check:
   - CKV2_AWS_41 # EC2 has no attached IAM role - this instance only serves nginx and makes no AWS API calls, so it needs none
   - CKV2_AWS_62 # S3 event notifications - most buckets in this repo don't need event-driven processing; the one that does (Phase 6 uploads bucket) already has it
   - CKV2_AWS_5  # SG not attached to any resource - the Phase 2 networking demo intentionally builds the SG without launching an instance, since that phase is about network topology, not compute
+
+  # --- Phase 11 (ECS/EKS): cost control on short-lived container demos ---
+  - CKV_AWS_65  # ECS Container Insights - extra CloudWatch metrics/logs cost, unnecessary for a demo cluster
+  - CKV_AWS_158 # CloudWatch Log Group encrypted with customer-managed KMS - default AWS-owned key encryption is sufficient, avoids an extra $1/month KMS key
+  - CKV_AWS_338 # CloudWatch log retention >= 1 year - directly conflicts with this repo's "destroy immediately after each lab" principle; 7 days is intentional
+  - CKV_AWS_58  # EKS secrets encryption via customer KMS key - adds cost/complexity for a cluster that only lives for a short verification window
+  - CKV_AWS_37  # EKS control plane logging for all log types - extra CloudWatch Logs cost, unnecessary for a short-lived demo cluster
+
+  # --- Phase 11 (ECS/EKS): intentional for hands-on verification, or overkill for a hello-world demo ---
+  - CKV_AWS_336 # ECS container read-only root filesystem - the stock nginx:latest image needs writable paths (cache, temp, pid) and would break without extra volume/tmpfs config; out of scope for this demo
+  - CKV_AWS_39  # EKS public endpoint enabled - needed for direct kubectl access from a laptop without a VPN/bastion; access is restricted to my own IP via public_access_cidrs (see CKV_AWS_38, which is fixed, not skipped)
+  - CKV_AWS_333 # ECS service auto-assigns a public IP - deliberate, since this phase intentionally skips ALB to focus on ECS/Fargate concepts; the capstone project replaces this with a private subnet + ALB
