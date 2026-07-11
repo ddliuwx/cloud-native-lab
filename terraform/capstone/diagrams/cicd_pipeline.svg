@@ -1,0 +1,86 @@
+<svg width="760" height="640" viewBox="0 0 760 640" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Capstone CI pipeline: real, non-empty state plan via OIDC</title>
+<desc>A pull request touching terraform/capstone triggers GitHub Actions, which requests an OIDC token and exchanges it via AWS STS for temporary credentials by assuming the same github actions role built in Phase 9, whose permissions were expanded for this project with a broad ReadOnlyAccess policy plus a narrow DynamoDB lock table policy. With those credentials, terraform init connects to the real S3 remote state backend holding this project's actual deployed resources, and terraform plan diffs the configuration against that real state, unlike Phase 9's plan which only ever ran against an empty state. The result is commented back on the pull request, and apply stays manual.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<g class="c-gray">
+<rect x="270" y="20" width="220" height="56"/>
+<text class="th" x="380" y="42" text-anchor="middle">PR touches terraform/capstone/**</text>
+<text class="ts" x="380" y="60" text-anchor="middle">.github/workflows/capstone-plan.yml</text>
+</g>
+
+<path d="M380,76 L380,98" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="260" y="100" width="240" height="56"/>
+<text class="th" x="380" y="122" text-anchor="middle">Request OIDC token</text>
+<text class="ts" x="380" y="140" text-anchor="middle">configure-aws-credentials</text>
+</g>
+
+<path d="M380,156 L380,178" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="200" y="180" width="360" height="56"/>
+<text class="th" x="380" y="202" text-anchor="middle">sts:AssumeRoleWithWebIdentity</text>
+<text class="ts" x="380" y="218" text-anchor="middle">same github_actions_role built in Phase 9</text>
+</g>
+
+<path d="M380,236 L380,258" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="140" y="260" width="480" height="76"/>
+<text class="th" x="380" y="282" text-anchor="middle">Expanded permissions for this project</text>
+<text class="ts" x="380" y="300" text-anchor="middle">ReadOnlyAccess (broad Describe/Get/List across services)</text>
+<text class="ts" x="380" y="316" text-anchor="middle">+ dedicated DynamoDB lock-table policy (GetItem/PutItem/DeleteItem)</text>
+<text class="ts" x="380" y="330" text-anchor="middle">state locking needs write access even during a read-only plan</text>
+</g>
+
+<path d="M380,336 L380,358" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="200" y="360" width="360" height="56"/>
+<text class="th" x="380" y="382" text-anchor="middle">terraform init</text>
+<text class="ts" x="380" y="400" text-anchor="middle">connects to the real S3 backend for this project</text>
+</g>
+
+<path d="M380,416 L380,438" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="180" y="440" width="400" height="66"/>
+<text class="th" x="380" y="462" text-anchor="middle">terraform fmt / validate / plan</text>
+<text class="ts" x="380" y="480" text-anchor="middle">diffs against real, non-empty state -</text>
+<text class="ts" x="380" y="496" text-anchor="middle">unlike Phase 9's plan, which only ever ran empty</text>
+</g>
+
+<path d="M380,506 L380,528" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="240" y="530" width="280" height="56"/>
+<text class="th" x="380" y="552" text-anchor="middle">Comment plan result on PR</text>
+<text class="ts" x="380" y="568" text-anchor="middle">fmt / validate / plan outcome</text>
+</g>
+
+<path d="M380,586 L380,608" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="240" y="610" width="280" height="24"/>
+<text class="ts" x="380" y="626" text-anchor="middle">apply stays manual, as always</text>
+</g>
+</svg>

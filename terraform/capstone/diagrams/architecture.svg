@@ -1,6 +1,6 @@
 <svg width="980" height="880" viewBox="0 0 980 880" xmlns="http://www.w3.org/2000/svg" role="img">
 <title>Capstone three-tier architecture: ALB + ECS Fargate + RDS across two AZs, with CI/CD and remote state</title>
-<desc>Users reach an Application Load Balancer in the public subnets through the Internet Gateway. The ALB forwards traffic to ECS Fargate tasks running in private subnets across two availability zones. Those tasks reach a private RDS MySQL instance (subnet group spanning both AZs, single-AZ instance) restricted to the task security group, and reach the internet only outbound through a NAT Gateway in the public subnet, for pulling the container image. Outside the VPC, GitHub Actions assumes an IAM role via OIDC to run terraform plan and apply against this whole architecture, and Terraform's own state is stored remotely in an S3 bucket with DynamoDB locking.</desc>
+<desc>Users reach an Application Load Balancer in the public subnets through the Internet Gateway. The ALB forwards traffic to ECS Fargate tasks running in private subnets across two availability zones; each task carries both an execution role and a separate task role with SSM permissions for ECS Exec debugging. Those tasks reach a private RDS MySQL instance (subnet group spanning both AZs, single-AZ instance) restricted to the task security group, and reach the internet only outbound through a NAT Gateway in the public subnet, for pulling the container image. Outside the VPC, GitHub Actions assumes an IAM role via OIDC to run terraform plan against this whole architecture (apply stays manual), and Terraform's own state is stored remotely in a dedicated S3 bucket with DynamoDB locking that this repo's start/destroy scripts recreate or tear down together with everything else.</desc>
 <style>
   rect { rx: 8px; }
   text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
@@ -65,14 +65,16 @@
 <g class="c-purple">
 <rect x="110" y="330" width="260" height="56"/>
 <text class="th" x="240" y="350" text-anchor="middle">ECS Fargate task</text>
-<text class="ts" x="240" y="368" text-anchor="middle">awsvpc, no public IP</text>
+<text class="ts" x="240" y="368" text-anchor="middle">awsvpc, no public IP, ECS Exec enabled</text>
 </g>
 
 <g class="c-purple">
 <rect x="530" y="330" width="260" height="56"/>
 <text class="th" x="660" y="350" text-anchor="middle">ECS Fargate task</text>
-<text class="ts" x="660" y="368" text-anchor="middle">awsvpc, no public IP</text>
+<text class="ts" x="660" y="368" text-anchor="middle">awsvpc, no public IP, ECS Exec enabled</text>
 </g>
+
+<text class="ts" x="450" y="322" text-anchor="middle" fill="#5F5E5A">each task: execution role (pull image, logs) + task role (SSM for ECS Exec)</text>
 
 <path d="M240,236 L240,328" class="arr" marker-end="url(#arrow)"/>
 <path d="M660,236 L660,328" class="arr" marker-end="url(#arrow)"/>
@@ -92,7 +94,7 @@
 <g class="c-gray">
 <rect x="290" y="500" width="320" height="56"/>
 <text class="th" x="450" y="520" text-anchor="middle">Remote state backend</text>
-<text class="ts" x="450" y="538" text-anchor="middle">S3 (state) + DynamoDB (lock), from Phase 1</text>
+<text class="ts" x="450" y="538" text-anchor="middle">S3 (state) + DynamoDB (lock), recreated/torn down by start.sh/destroy.sh</text>
 </g>
 
 <g class="c-coral">
