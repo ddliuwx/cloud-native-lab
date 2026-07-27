@@ -1,0 +1,120 @@
+<svg width="900" height="920" viewBox="0 0 900 920" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>GitHub Actions to AWS: OIDC federated authentication flow</title>
+<desc>Two actors, GitHub and AWS, connected by a runtime flow. On the GitHub side, a workflow declares id-token write permission, then the configure-aws-credentials action requests a signed JWT ID token from GitHub's OIDC token issuer, containing sub, aud and iss claims scoped to the specific repo and branch. That JWT is sent to AWS STS via AssumeRoleWithWebIdentity. On the AWS side, two resources were pre-configured: an IAM OIDC identity provider trusting GitHub's issuer via its public keys (JWKS), and an IAM role whose trust policy conditions check that the aud claim equals sts.amazonaws.com and the sub claim matches the specific repo and branch. STS validates the JWT signature against the registered provider and checks the trust policy conditions, then issues short-lived temporary AWS credentials back to the runner, which subsequent steps like terraform commands use transparently until they expire.</desc>
+<style>
+  rect { rx: 8px; }
+  text { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+  text.th { font-size: 14px; font-weight: 500; }
+  text.ts { font-size: 12px; font-weight: 400; }
+  text.tl { font-size: 13px; font-weight: 600; }
+  .c-gray rect { fill: #F1EFE8; stroke: #5F5E5A; stroke-width: 0.5; }
+  .c-gray .th { fill: #2C2C2A; } .c-gray .ts { fill: #5F5E5A; }
+  .c-blue rect { fill: #E6F1FB; stroke: #185FA5; stroke-width: 0.5; }
+  .c-blue .th { fill: #0C447C; } .c-blue .ts { fill: #185FA5; }
+  .c-purple rect { fill: #EEEDFE; stroke: #534AB7; stroke-width: 0.5; }
+  .c-purple .th { fill: #3C3489; } .c-purple .ts { fill: #534AB7; }
+  .c-coral rect { fill: #FAECE7; stroke: #993C1D; stroke-width: 0.5; }
+  .c-coral .th { fill: #712B13; } .c-coral .ts { fill: #993C1D; }
+  .arr { stroke: #73726c; stroke-width: 1.5; fill: none; }
+  .boundary { fill: none; stroke: #8a897f; stroke-width: 1; stroke-dasharray: 3 3; }
+</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#73726c" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+
+<rect x="20" y="60" width="380" height="300" class="boundary" rx="14"/>
+<text class="tl" x="40" y="84" fill="#2C2C2A">GitHub side (runtime, per workflow run)</text>
+
+<rect x="500" y="60" width="380" height="740" class="boundary" rx="14"/>
+<text class="tl" x="520" y="84" fill="#2C2C2A">AWS side</text>
+
+<g class="c-gray">
+<rect x="50" y="100" width="320" height="50"/>
+<text class="th" x="210" y="120" text-anchor="middle">permissions: id-token: write</text>
+<text class="ts" x="210" y="136" text-anchor="middle">declared in the workflow job</text>
+</g>
+
+<path d="M210,150 L210,172" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="50" y="174" width="320" height="60"/>
+<text class="th" x="210" y="196" text-anchor="middle">configure-aws-credentials action</text>
+<text class="ts" x="210" y="212" text-anchor="middle">requests a JWT, audience = sts.amazonaws.com</text>
+<text class="ts" x="210" y="226" text-anchor="middle">from token.actions.githubusercontent.com</text>
+</g>
+
+<path d="M210,234 L210,256" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-blue">
+<rect x="50" y="258" width="320" height="72"/>
+<text class="th" x="210" y="278" text-anchor="middle">Signed JWT ID token</text>
+<text class="ts" x="210" y="294" text-anchor="middle">iss: token.actions.githubusercontent.com</text>
+<text class="ts" x="210" y="308" text-anchor="middle">aud: sts.amazonaws.com</text>
+<text class="ts" x="210" y="322" text-anchor="middle">sub: repo:owner/repo:ref:refs/heads/main</text>
+</g>
+
+<path d="M370,294 C440,294 440,150 500,150" class="arr" marker-end="url(#arrow)"/>
+<text class="ts" x="430" y="180" text-anchor="middle" fill="#5F5E5A">sts:AssumeRoleWithWebIdentity</text>
+
+<g class="c-purple">
+<rect x="520" y="100" width="340" height="60"/>
+<text class="th" x="690" y="120" text-anchor="middle">Pre-configured: aws_iam_openid_connect_provider</text>
+<text class="ts" x="690" y="136" text-anchor="middle">trusts GitHub's issuer, validates via JWKS public keys</text>
+</g>
+
+<path d="M690,160 L690,182" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-purple">
+<rect x="520" y="184" width="340" height="76"/>
+<text class="th" x="690" y="204" text-anchor="middle">Pre-configured: IAM role trust policy</text>
+<text class="ts" x="690" y="220" text-anchor="middle">condition: aud == sts.amazonaws.com</text>
+<text class="ts" x="690" y="236" text-anchor="middle">condition: sub matches this specific repo + branch</text>
+<text class="ts" x="690" y="250" text-anchor="middle">(narrows who can ever assume this role)</text>
+</g>
+
+<path d="M690,260 L690,282" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="520" y="284" width="340" height="76"/>
+<text class="th" x="690" y="306" text-anchor="middle">AWS STS validates</text>
+<text class="ts" x="690" y="322" text-anchor="middle">1. signature against the registered provider</text>
+<text class="ts" x="690" y="336" text-anchor="middle">2. trust policy conditions against actual claims</text>
+<text class="ts" x="690" y="350" text-anchor="middle">3. token not expired</text>
+</g>
+
+<path d="M690,360 L690,382" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-coral">
+<rect x="520" y="384" width="340" height="66"/>
+<text class="th" x="690" y="406" text-anchor="middle">Short-lived temporary credentials</text>
+<text class="ts" x="690" y="422" text-anchor="middle">Access Key + Secret + Session Token</text>
+<text class="ts" x="690" y="436" text-anchor="middle">valid for minutes to about an hour, then expire</text>
+</g>
+
+<path d="M520,417 C440,417 440,417 370,340" class="arr" marker-end="url(#arrow)"/>
+
+<path d="M690,450 L690,472" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="520" y="474" width="340" height="60"/>
+<text class="th" x="690" y="496" text-anchor="middle">Runner exports credentials as env vars</text>
+<text class="ts" x="690" y="512" text-anchor="middle">subsequent steps (terraform plan, aws cli) use them</text>
+</g>
+
+<path d="M690,534 L690,556" class="arr" marker-end="url(#arrow)"/>
+
+<g class="c-gray">
+<rect x="520" y="558" width="340" height="50"/>
+<text class="th" x="690" y="578" text-anchor="middle">Job ends / credentials expire</text>
+<text class="ts" x="690" y="594" text-anchor="middle">nothing persists, no cleanup needed</text>
+</g>
+
+<g class="c-gray">
+<rect x="520" y="640" width="340" height="140" rx="12" stroke-width="0.5"/>
+<text class="th" x="690" y="664" text-anchor="middle">Why this is safer than a stored Access Key</text>
+<text class="ts" x="690" y="686" text-anchor="middle">no long-lived secret ever stored in GitHub;</text>
+<text class="ts" x="690" y="702" text-anchor="middle">trust is scoped to one repo + branch via sub;</text>
+<text class="ts" x="690" y="718" text-anchor="middle">credentials self-expire, nothing to rotate</text>
+<text class="ts" x="690" y="734" text-anchor="middle">or manually revoke after a leak</text>
+</g>
+</svg>
